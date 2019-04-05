@@ -28,7 +28,7 @@ public class VMmanager implements Runnable {
         Page tmp = new Page(variableId, value);
         System.out.println(mainMemory.size());
 
-        if(mainMemory.size() >= maxSize){
+        if(mainMemory.size() < maxSize){
             //not enough space in MainMemory so store in virtual memory
             System.out.println("Not Enough Space VMsize:" +virtualMemory.size());
             virtualMemory.add(tmp);
@@ -88,4 +88,33 @@ public class VMmanager implements Runnable {
     void parseVMM(){
 
     }
+
+        //parse commands text file and return an array of commands
+        public static ArrayList<Command> commmandParser(Scanner scanner){
+            //temporary array to store commands
+            ArrayList<Command> commands = new ArrayList<>();
+            scanner.nextLine();
+
+            //scan if next line exists
+            while (scanner.hasNextLine()) {
+
+                String info = scanner.nextLine();
+                String arr[] = info.split(" ", 3);
+                // store the command id
+                String commandID = arr[0];
+                String variableId = String.valueOf(arr[1]);
+                int variableValue;
+                if (arr.length < 2) {
+                    variableValue = Integer.parseInt(null);
+                } else {
+                    variableValue = Integer.valueOf(arr[2]);
+                }
+                Command command = new Command(commandID, variableId, variableValue);
+                commands.add(command);
+
+            }
+            return commands;
+        }
+
+
 }
