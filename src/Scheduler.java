@@ -3,6 +3,7 @@
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -15,7 +16,8 @@ public class Scheduler {
     final static boolean DEBUG = true;
     final static int CORES = 2;
 
-    private int clk;
+    VMmanager vmm;
+
     public static int time;
 
     //store all process info while parsing text file
@@ -26,6 +28,8 @@ public class Scheduler {
     private Deque<Integer> runningQueue = new LinkedList<>();
     private Deque<Integer> finishedQueue = new LinkedList<>();
     boolean areProcessDone;
+    Thread vmmThread;
+
 
 
     private int  threadCount;
@@ -40,14 +44,16 @@ public class Scheduler {
 
 
 
-    public Scheduler() {
-        clk = 1;
+    public Scheduler() throws FileNotFoundException {
         time = 1;
         areProcessDone = false;
         threadCount = 0;
+        vmm = new VMmanager();
+        vmmThread = new Thread(vmm);
+        vmmThread.start();
     }
 
-    public void startScheduler() throws FileNotFoundException{
+    public void startScheduler() throws IOException {
         //read txt file
         parseProcessFile("processes.txt");
 
@@ -76,7 +82,7 @@ public class Scheduler {
         }
     }
 
-    public void runQueue() {
+    public void runQueue() throws IOException {
         while(runningQueue.size() != 0){
             if(false){
                 System.out.println("Running QUEUE");
@@ -87,6 +93,10 @@ public class Scheduler {
             Thread thread = new Thread(p);
             System.out.println("Clock: "+ time + ", Process "+p.getPID()+": Started");
             thread.start();
+
+
+            time += vmm.nextCommand(p, time);
+            System.out.println("Clock: "+ time + ", Process "+p.getPID()+": Running");
 
 //            System.out.println("Clock: "+ time + ", Process "+p.getPID()+": Processing");
             runningQueue.removeFirst();
@@ -117,7 +127,7 @@ public class Scheduler {
         Scanner scanner = new Scanner(new BufferedReader(new FileReader(fileName)));
 
         threadCount = scanner.nextInt();
-        System.out.println(threadCount);
+        System.out.println("\nNumber of Threads: "+threadCount);
         int PID = 1;
         scanner.nextLine();
         while (scanner.hasNextLine()){
@@ -128,7 +138,7 @@ public class Scheduler {
             PID++;
         }
         if(DEBUG) {
-            System.out.println("List of all Process");
+            System.out.println("\nList of all Process");
             for (Process p : processes) {
                 p.print();
             }

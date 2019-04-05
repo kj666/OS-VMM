@@ -1,4 +1,4 @@
-public class Command  {
+public class Command implements Runnable {
     private String variableId;
     private int value;
     private String command;
@@ -8,7 +8,12 @@ public class Command  {
         this.value = value;
         this.command = command;
     }
-   
+
+    public Command(String command, String variableId) {
+        this.variableId = variableId;
+        this.command = command;
+    }
+
     public String getVariableId() {
         return variableId;
     }

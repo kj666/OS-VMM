@@ -2,6 +2,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VMmanager implements Runnable {
 
@@ -9,19 +10,28 @@ public class VMmanager implements Runnable {
     Vector<Page> mainMemory;
     Vector<Page> virtualMemory;
     Vector<Command> commandList;
+    int timeTaken;
+
+    AtomicBoolean isPaused;
 
 
     @Override
     public void run() {
-
+        timeTaken = 0;
+        while(!isPaused.get()){
+            System.out.println("VMM TIME: "+timeTaken);
+            timeTaken++;
+        }
     }
 
     public VMmanager() throws FileNotFoundException {
         parseMemConfigFile("memconfig.txt");
+        System.out.println("\nmemory size: "+maxSize);
         commandList = commmandParser("commands.txt");
-        System.out.println("memory size: "+maxSize);
         mainMemory = new Vector<>();
         virtualMemory = new Vector<>();
+        timeTaken = 0;
+        isPaused = new AtomicBoolean(true);
     }
 
     //Stores given variableID and its value into first assigned spot in memory
@@ -32,9 +42,7 @@ public class VMmanager implements Runnable {
 
         if(mainMemory.size() < maxSize){
             //not enough space in MainMemory so store in virtual memory
-            System.out.println("Not Enough Space VMsize:" +virtualMemory.size());
             virtualMemory.add(tmp);
-            System.out.println("Not Enough Space VMsize:" +virtualMemory.size());
             //todo store Page tmp into the vm.txt
             FileWriter file = new FileWriter("C:\\Dev\\OS-VMM\\vm.txt",true);
             PrintWriter writer = new PrintWriter(file,true);
@@ -123,30 +131,41 @@ public class VMmanager implements Runnable {
         }
     }
 
-    public boolean nextCommand() throws IOException {
+    public int nextCommand(Process p, int time) throws IOException {
 
         if(commandList.size() != 0){
+            //retrieve the first command from list
             Command currentCmd = commandList.firstElement();
+            //removes the first command from list
             commandList.removeElement(commandList.firstElement());
 
             if(currentCmd.getCommand().equals("Store")){
+                timeTaken = 300;
+                time+=timeTaken;
+                System.out.println("Clock: "+ time + ", Process "+p.getPID()+", "+currentCmd.getCommand()+": Variable "+currentCmd.getVariableId()+", Value: "+currentCmd.getValue());
                 store(currentCmd.getVariableId(), currentCmd.getValue());
-                return true;
+                return timeTaken;
             }
             else if(currentCmd.getCommand().equals("Release")){
+                timeTaken = 300;
+                time+=timeTaken;
+                System.out.println("Clock: "+ time + ", Process "+p.getPID()+", "+currentCmd.getCommand()+": Variable "+currentCmd.getVariableId());
                 release(currentCmd.getVariableId());
-                return true;
+                return timeTaken;
             }
             else if(currentCmd.getCommand().equals("Lookup")){
+                timeTaken = 300;
+                time+=timeTaken;
+                System.out.println("Clock: "+ time + ", Process "+p.getPID()+", "+currentCmd.getCommand()+": Variable "+currentCmd.getVariableId()+", Value: "+currentCmd.getValue());
                 lookUp(currentCmd.getVariableId());
-                return true;
+                return timeTaken;
             }
             else {
                 System.out.println("Unknown Command");
-                return false;
+                return timeTaken;
             }
         }
-        return false;
+        return timeTaken;
     }
 
     void parseMemConfigFile(String fileName)throws FileNotFoundException {
@@ -159,27 +178,36 @@ public class VMmanager implements Runnable {
         Scanner scanner = new Scanner(new BufferedReader(new FileReader(fileName)));
         //temporary array to store commands
         Vector<Command> commands = new Vector<>();
-        scanner.nextLine();
 
         //scan if next line exists
         while (scanner.hasNextLine()) {
-
+            Command command;
             String info = scanner.nextLine();
             String arr[] = info.split(" ", 3);
             // store the command id
             String commandID = arr[0];
             String variableId = String.valueOf(arr[1]);
-            int variableValue;
-            if (arr.length < 2) {
-                variableValue = Integer.parseInt(null);
-            } else {
-                variableValue = Integer.valueOf(arr[2]);
-            }
-            Command command = new Command(commandID, variableId, variableValue);
-            commands.add(command);
 
+            if (arr.length < 3)
+                command = new Command(commandID, variableId);
+            else
+                command = new Command(commandID, variableId, Integer.valueOf(arr[2]));
+
+            commands.add(command);
+        }
+
+        System.out.println("\nList of Parsed Commands");
+        for(Command c: commands){
+            System.out.println("Cmd: "+ c.getCommand()+" vID: "+ c.getVariableId()+ " Value: "+c.getValue());
         }
         return commands;
     }
 
+    public int getTimeTaken() {
+        return timeTaken;
+    }
+
+    public void setPausedState(boolean pause) {
+        isPaused.set(pause);
+    }
 }

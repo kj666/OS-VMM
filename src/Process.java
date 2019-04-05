@@ -33,6 +33,7 @@ class Process implements Runnable {
             if(t==burstTime){
                 setFinished(true);
             }
+            System.out.println("Process TIME: "+t);
             t++;
         }
 //        System.out.println(PID+" finished");
