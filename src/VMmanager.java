@@ -8,6 +8,7 @@ public class VMmanager implements Runnable {
     int maxSize;
     Vector<Page> mainMemory;
     Vector<Page> virtualMemory;
+    Vector<Command> commandList;
 
 
     @Override
@@ -17,6 +18,7 @@ public class VMmanager implements Runnable {
 
     public VMmanager() throws FileNotFoundException {
         parseMemConfigFile("memconfig.txt");
+        commandList = commmandParser("commands.txt");
         System.out.println("memory size: "+maxSize);
         mainMemory = new Vector<>();
         virtualMemory = new Vector<>();
@@ -121,12 +123,30 @@ public class VMmanager implements Runnable {
         }
     }
 
-    public void handlePage(){
+    public boolean nextCommand() throws IOException {
 
-    }
+        if(commandList.size() != 0){
+            Command currentCmd = commandList.firstElement();
+            commandList.removeElement(commandList.firstElement());
 
-    public void nextCommand(){
-
+            if(currentCmd.getCommand().equals("Store")){
+                store(currentCmd.getVariableId(), currentCmd.getValue());
+                return true;
+            }
+            else if(currentCmd.getCommand().equals("Release")){
+                release(currentCmd.getVariableId());
+                return true;
+            }
+            else if(currentCmd.getCommand().equals("Lookup")){
+                lookUp(currentCmd.getVariableId());
+                return true;
+            }
+            else {
+                System.out.println("Unknown Command");
+                return false;
+            }
+        }
+        return false;
     }
 
     void parseMemConfigFile(String fileName)throws FileNotFoundException {
@@ -134,36 +154,32 @@ public class VMmanager implements Runnable {
         maxSize = scanner.nextInt();
     }
 
-    void parseVMM(){
+    //parse commands text file and return an array of commands
+     Vector<Command> commmandParser(String fileName) throws FileNotFoundException {
+        Scanner scanner = new Scanner(new BufferedReader(new FileReader(fileName)));
+        //temporary array to store commands
+        Vector<Command> commands = new Vector<>();
+        scanner.nextLine();
 
-    }
+        //scan if next line exists
+        while (scanner.hasNextLine()) {
 
-        //parse commands text file and return an array of commands
-        public static ArrayList<Command> commmandParser(Scanner scanner){
-            //temporary array to store commands
-            ArrayList<Command> commands = new ArrayList<>();
-            scanner.nextLine();
-
-            //scan if next line exists
-            while (scanner.hasNextLine()) {
-
-                String info = scanner.nextLine();
-                String arr[] = info.split(" ", 3);
-                // store the command id
-                String commandID = arr[0];
-                String variableId = String.valueOf(arr[1]);
-                int variableValue;
-                if (arr.length < 2) {
-                    variableValue = Integer.parseInt(null);
-                } else {
-                    variableValue = Integer.valueOf(arr[2]);
-                }
-                Command command = new Command(commandID, variableId, variableValue);
-                commands.add(command);
-
+            String info = scanner.nextLine();
+            String arr[] = info.split(" ", 3);
+            // store the command id
+            String commandID = arr[0];
+            String variableId = String.valueOf(arr[1]);
+            int variableValue;
+            if (arr.length < 2) {
+                variableValue = Integer.parseInt(null);
+            } else {
+                variableValue = Integer.valueOf(arr[2]);
             }
-            return commands;
-        }
+            Command command = new Command(commandID, variableId, variableValue);
+            commands.add(command);
 
+        }
+        return commands;
+    }
 
 }
