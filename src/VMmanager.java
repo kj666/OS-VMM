@@ -23,38 +23,21 @@ public class VMmanager implements Runnable {
     }
 
     //Stores given variableID and its value into first assigned spot in memory
-    public int store(String variableId, int value) throws FileNotFoundException {
+    public int store(String variableId, int value) throws IOException {
 
         Page tmp = new Page(variableId, value);
         System.out.println(mainMemory.size());
 
         if(mainMemory.size() >= maxSize){
-
             //not enough space in MainMemory so store in virtual memory
             System.out.println("Not Enough Space VMsize:" +virtualMemory.size());
             virtualMemory.add(tmp);
             System.out.println("Not Enough Space VMsize:" +virtualMemory.size());
             //todo store Page tmp into the vm.txt
-
-            File file = new File("C:\\Dev\\OS-VMM\\vm.txt");
-            PrintWriter writer = new PrintWriter(file);
-            writer.println(tmp.variableID+" "+tmp.value);
-            writer.close();
-//            try{
-//                file.mkdirs();
-//                file.createNewFile();
-//            }catch(IOException e1){
-//                e1.printStackTrace();
-//            }
-//            try {
-//                PrintWriter writer = new PrintWriter(file);
-//                writer.println(tmp);
-//                writer.close();
-//            }
-//            catch(FileNotFoundException e){
-//                e.printStackTrace();
-//            }
-
+            FileWriter file = new FileWriter("C:\\Dev\\OS-VMM\\vm.txt",true);
+            PrintWriter writer = new PrintWriter(file,true);
+                writer.println(tmp.variableID + " " + tmp.value);
+                writer.close();
         }
         else{
             //enough space in main memory
