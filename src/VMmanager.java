@@ -71,6 +71,7 @@ public class VMmanager implements Runnable {
         for(int i = 0; i < mainMemory.size();i++){
             //if page exists then return its value
             if(mainMemory.get(i).variableID.equals(variableId)){
+                mainMemory.get(i).setLastAccess(System.currentTimeMillis());
                 return mainMemory.get(i).value;
             }
         }
@@ -81,6 +82,7 @@ public class VMmanager implements Runnable {
             //then move page into memory and release this page from virtual memory
             //if no spot available in mainMemory, then swap with least recently accessed variable
             if(virtualMemory.get(i).variableID.equals(variableId)){
+                swapMemory(variableId);
                 virtualMemory.removeElementAt(i);
             }
         }
@@ -88,8 +90,35 @@ public class VMmanager implements Runnable {
         return -1;
     }
 
-    public void swapMemory(){
+    //find least recent page in mainMemory and swap with specified page
+    public void swapMemory(String variableID){
 
+        //smallest long is the oldest time
+        long oldest = mainMemory.get(0).lastAccess;
+        int positionOldest = 0;
+
+        //check last accessed page
+        for(int i = 1; i< mainMemory.size();i++){
+            if(mainMemory.get(i).lastAccess < oldest){
+                positionOldest = i-1;
+            }
+        }
+        System.out.println("MemSwap "+ positionOldest +" lastAccessed: "+oldest);
+
+        //Insert from mainMem to VM
+        virtualMemory.add(mainMemory.get(positionOldest));
+        //remove from VM
+        mainMemory.removeElementAt(positionOldest);
+
+        //insert from VM to mainMem once one spot free
+        for(int i = 0; i < virtualMemory.size();i++){
+            if(virtualMemory.get(i).variableID.equals(variableID)){
+                virtualMemory.get(i).setLastAccess(System.currentTimeMillis());
+                mainMemory.add(virtualMemory.get(i));
+                virtualMemory.removeElementAt(i);
+                break;
+            }
+        }
     }
 
     public void handlePage(){
