@@ -1,18 +1,18 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-
 import java.util.ArrayList;
-
 import java.util.Scanner;
-import java.lang.*;
+import java.util.Vector;
+
 public class VMmanager implements Runnable {
 
-    private int maxSize;
-    private int value;
-    private String variableID;
-    ArrayList<String> memoryVariableID = new ArrayList<String>();
-    ArrayList<Integer> memoryVariableValue = new ArrayList<Integer>();
+    int maxSize;
+    Vector<Page> mainMemory;
+    Vector<Page> virtualMemory;
+
+
     @Override
     public void run() {
 
@@ -23,26 +23,33 @@ public class VMmanager implements Runnable {
         System.out.println("memory size: "+maxSize);
     }
 
-    public void store(String variableId, int value){
-        memoryVariableID.add(variableId);
-        memoryVariableValue.add(value);
+    //Stores given variableID and its value into first assigned spot in memory
+    public int store(String variableId, int value){
+
+        Page tmp = new Page(variableId, value);
+
+        if(mainMemory.size() >= maxSize){
+            //not enough space in MainMemory so store in virtual memory
+            System.out.println("Enough Space");
+            virtualMemory.add(tmp);
+            //todo store Page tmp into the vm.txt file
+
+        }
+        else{
+            //enough space in main memory
+            mainMemory.add(tmp);
+        }
+        return 1;
     }
 
     public void release(String variableId){
-        memoryVariableID.remove(variableId);
-        memoryVariableValue.remove(memoryVariableID.indexOf(variableId));
 
     }
 
-    public int lookUp(String variableId) {
-        int variableIndex = memoryVariableID.indexOf(variableId);
-        if (variableIndex != -1) {
-            System.out.println("Variable " + memoryVariableID.get(variableIndex) + ", Value: " + memoryVariableValue.get(variableIndex));
-        } else {
-
-        }
-        return -1;
+    public int lookUp(String variableId){
+        return 1;
     }
+
     public void swapMemory(){
 
     }
@@ -58,8 +65,9 @@ public class VMmanager implements Runnable {
     void parseMemConfigFile(String fileName)throws FileNotFoundException {
         Scanner scanner = new Scanner(new BufferedReader(new FileReader(fileName)));
         maxSize = scanner.nextInt();
-
     }
 
+    void parseVMM(){
 
+    }
 }
