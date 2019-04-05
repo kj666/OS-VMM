@@ -1,4 +1,4 @@
-import sun.plugin.perf.PluginRollup;
+//import sun.plugin.perf.PluginRollup;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
