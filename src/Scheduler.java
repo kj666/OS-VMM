@@ -16,7 +16,7 @@ public class Scheduler {
     final static int CORES = 2;
 
     private int clk;
-    private int time;
+    public static int time;
 
     //store all process info while parsing text file
     ArrayList<Process> processes = new ArrayList<>();
