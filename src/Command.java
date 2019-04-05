@@ -1,4 +1,4 @@
-public class Command implements Runnable {
+public class Command {
     private String variableId;
     private int value;
     private String command;
