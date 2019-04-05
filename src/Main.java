@@ -11,6 +11,7 @@ public class Main {
 
         VMmanager vm = new VMmanager();
         vm.store("1", 5);
+        vm.store("2", 89);
 
         Scheduler scheduler = new Scheduler();
         scheduler.startScheduler();
