@@ -65,8 +65,9 @@ public class VMmanager implements Runnable {
     }
 
     public void release(String variableId){
-        //search in memory for variableID
+        //search in mainMemory for variableID
         for(int i = 0; i < mainMemory.size();i++){
+            //if exist then remove it from mainMemory
             if(mainMemory.get(i).variableID.equals(variableId)){
                 mainMemory.removeElementAt(i);
             }
@@ -74,15 +75,34 @@ public class VMmanager implements Runnable {
 
         //search in virtualMemory for variableID
         for(int i = 0; i < virtualMemory.size();i++){
+            //if exist then remove it from virtualMemory
+            if(virtualMemory.get(i).variableID.equals(variableId)){
+                virtualMemory.removeElementAt(i);
+            }
+        }
+    }
+
+    public int lookUp(String variableId){
+
+        //search in mainMemory for variableID
+        for(int i = 0; i < mainMemory.size();i++){
+            //if page exists then return its value
+            if(mainMemory.get(i).variableID.equals(variableId)){
+                return mainMemory.get(i).value;
+            }
+        }
+
+        //search in virtualMemory for variableID
+        for(int i = 0; i < virtualMemory.size();i++){
+            //if page exists page fault occurs
+            //then move page into memory and release this page from virtual memory
+            //if no spot available in mainMemory, then swap with least recently accessed variable
             if(virtualMemory.get(i).variableID.equals(variableId)){
                 virtualMemory.removeElementAt(i);
             }
         }
 
-    }
-
-    public int lookUp(String variableId){
-        return 1;
+        return -1;
     }
 
     public void swapMemory(){
