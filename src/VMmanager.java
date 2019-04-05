@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Vector;
@@ -28,11 +25,29 @@ public class VMmanager implements Runnable {
 
         Page tmp = new Page(variableId, value);
 
+
         if(mainMemory.size() >= maxSize){
+
             //not enough space in MainMemory so store in virtual memory
             System.out.println("Enough Space");
             virtualMemory.add(tmp);
-            //todo store Page tmp into the vm.txt file
+            //todo store Page tmp into the vm.txt
+
+            File file = new File("C:\\Dev\\OS-VMM\\vm.txt");
+            try{
+                file.mkdirs();
+                file.createNewFile();
+            }catch(IOException e1){
+                e1.printStackTrace();
+            }
+            try {
+                PrintWriter writer = new PrintWriter(file);
+                writer.println(tmp);
+                writer.close();
+            }
+            catch(FileNotFoundException e){
+                e.printStackTrace();
+            }
 
         }
         else{
