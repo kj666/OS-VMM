@@ -18,10 +18,11 @@ public class VMmanager implements Runnable {
     public VMmanager() throws FileNotFoundException {
         parseMemConfigFile("memconfig.txt");
         System.out.println("memory size: "+maxSize);
+        mainMemory = new Vector<>(maxSize);
     }
 
     //Stores given variableID and its value into first assigned spot in memory
-    public int store(String variableId, int value){
+    public int store(String variableId, int value) throws FileNotFoundException {
 
         Page tmp = new Page(variableId, value);
 
@@ -34,20 +35,23 @@ public class VMmanager implements Runnable {
             //todo store Page tmp into the vm.txt
 
             File file = new File("C:\\Dev\\OS-VMM\\vm.txt");
-            try{
-                file.mkdirs();
-                file.createNewFile();
-            }catch(IOException e1){
-                e1.printStackTrace();
-            }
-            try {
-                PrintWriter writer = new PrintWriter(file);
-                writer.println(tmp);
-                writer.close();
-            }
-            catch(FileNotFoundException e){
-                e.printStackTrace();
-            }
+            PrintWriter writer = new PrintWriter(file);
+            writer.println(tmp.variableID+" "+tmp.value);
+            writer.close();
+//            try{
+//                file.mkdirs();
+//                file.createNewFile();
+//            }catch(IOException e1){
+//                e1.printStackTrace();
+//            }
+//            try {
+//                PrintWriter writer = new PrintWriter(file);
+//                writer.println(tmp);
+//                writer.close();
+//            }
+//            catch(FileNotFoundException e){
+//                e.printStackTrace();
+//            }
 
         }
         else{

@@ -9,11 +9,12 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
         System.out.println("Hello World!");
 
-        //VMmanager vm = new VMmanager();
-
+        VMmanager vm = new VMmanager();
+        vm.store("1", 5);
 
         Scheduler scheduler = new Scheduler();
         scheduler.startScheduler();
+
     }
 
 
