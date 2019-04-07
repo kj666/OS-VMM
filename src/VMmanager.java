@@ -6,11 +6,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VMmanager implements Runnable {
 
-    int maxSize;
-    Vector<Page> mainMemory;
-    Vector<Page> virtualMemory;
-    Vector<Command> commandList;
-    int timeTaken;
+    static int maxSize;
+    static Vector<Page> mainMemory;
+    static Vector<Page> virtualMemory;
+    static Vector<Command> commandList;
+    static int timeTaken;
 
     AtomicBoolean isPaused;
 
@@ -35,7 +35,7 @@ public class VMmanager implements Runnable {
     }
 
     //Stores given variableID and its value into first assigned spot in memory
-    public int store(String variableId, int value) throws IOException {
+    public static int store(String variableId, int value) throws IOException {
 
         Page tmp = new Page(variableId, value);
         System.out.println(mainMemory.size());
@@ -57,7 +57,7 @@ public class VMmanager implements Runnable {
         return 1;
     }
 
-    public void release(String variableId){
+    public static void release(String variableId){
         //search in mainMemory for variableID
         for(int i = 0; i < mainMemory.size();i++){
             //if exist then remove it from mainMemory
@@ -75,7 +75,7 @@ public class VMmanager implements Runnable {
         }
     }
 
-    public int lookUp(String variableId){
+    public static int lookUp(String variableId){
 
         //search in mainMemory for variableID
         for(int i = 0; i < mainMemory.size();i++){
@@ -101,7 +101,7 @@ public class VMmanager implements Runnable {
     }
 
     //find least recent page in mainMemory and swap with specified page
-    public void swapMemory(String variableID){
+    public static void swapMemory(String variableID){
 
         //smallest long is the oldest time
         long oldest = mainMemory.get(0).lastAccess;
@@ -131,7 +131,7 @@ public class VMmanager implements Runnable {
         }
     }
 
-    public int nextCommand(Process p, int time) throws IOException {
+    public static int nextCommand(Process p, int time) throws IOException {
 
         if(commandList.size() != 0){
             //retrieve the first command from list
@@ -142,21 +142,21 @@ public class VMmanager implements Runnable {
             if(currentCmd.getCommand().equals("Store")){
                 timeTaken = 300;
                 time+=timeTaken;
-                System.out.println("Clock: "+ time + ", Process "+p.getPID()+", "+currentCmd.getCommand()+": Variable "+currentCmd.getVariableId()+", Value: "+currentCmd.getValue());
+                System.out.println("Clock: "+ Scheduler.time + ", Process "+p.getPID()+", "+currentCmd.getCommand()+": Variable "+currentCmd.getVariableId()+", Value: "+currentCmd.getValue());
                 store(currentCmd.getVariableId(), currentCmd.getValue());
                 return timeTaken;
             }
             else if(currentCmd.getCommand().equals("Release")){
                 timeTaken = 300;
                 time+=timeTaken;
-                System.out.println("Clock: "+ time + ", Process "+p.getPID()+", "+currentCmd.getCommand()+": Variable "+currentCmd.getVariableId());
+                System.out.println("Clock: "+ Scheduler.time + ", Process "+p.getPID()+", "+currentCmd.getCommand()+": Variable "+currentCmd.getVariableId());
                 release(currentCmd.getVariableId());
                 return timeTaken;
             }
             else if(currentCmd.getCommand().equals("Lookup")){
                 timeTaken = 300;
                 time+=timeTaken;
-                System.out.println("Clock: "+ time + ", Process "+p.getPID()+", "+currentCmd.getCommand()+": Variable "+currentCmd.getVariableId()+", Value: "+currentCmd.getValue());
+                System.out.println("Clock: "+ Scheduler.time + ", Process "+p.getPID()+", "+currentCmd.getCommand()+": Variable "+currentCmd.getVariableId()+", Value: "+currentCmd.getValue());
                 lookUp(currentCmd.getVariableId());
                 return timeTaken;
             }

@@ -4,17 +4,18 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-public class Scheduler {
+public class Scheduler implements Runnable{
 
     final static boolean DEBUG = true;
     final static int CORES = 2;
+    static final int IDLE = 1;
+    static final int RUNNING = 2;
+    static final int FINISHED = 3;
+    static Random rand;
 
     VMmanager vmm;
 
@@ -23,10 +24,11 @@ public class Scheduler {
     //store all process info while parsing text file
     ArrayList<Process> processes = new ArrayList<>();
     //Store all process ID when they are ready to be executed
-    private Deque<Integer> readyQueue = new LinkedList<>();
+    private Deque<Process> readyQueue = new LinkedList<>();
     //Store all process ID when they are running
-    private Deque<Integer> runningQueue = new LinkedList<>();
-    private Deque<Integer> finishedQueue = new LinkedList<>();
+    private Deque<Process> runningQueue = new LinkedList<>();
+    private Deque<Process> finishedQueue = new LinkedList<>();
+    Process currentProcess;
     boolean areProcessDone;
     Thread vmmThread;
 
@@ -43,7 +45,6 @@ public class Scheduler {
 
 
 
-
     public Scheduler() throws FileNotFoundException {
         time = 1;
         areProcessDone = false;
@@ -53,9 +54,16 @@ public class Scheduler {
         vmmThread.start();
     }
 
+    @Override
+    public void run() {
+        Thread t = new Thread(this);
+        t.start();
+    }
+
     public void startScheduler() throws IOException {
         //read txt file
         parseProcessFile("processes.txt");
+
 
         while(!areProcessDone){
             checkArrivalTimeProcess();
@@ -64,59 +72,79 @@ public class Scheduler {
             while(runningQueue.size()< CORES && !readyQueue.isEmpty()){
                 runningQueue.addLast(readyQueue.getFirst());
                 readyQueue.removeFirst();
+                System.out.println("moving from ready to runningQ "+Scheduler.time);
             }
+
+            if(currentProcess == null && runningQueue.size() != 0){
+                currentProcess = runningQueue.getFirst();
+            }
+
+
             runQueue();
+
             checkFinished();
 
+//            System.out.println(time);
             time++;
         }
+    }
 
-        System.out.println("clk:" +time);
+
+    public Process findProcessAndSetState(int PID, int state){
+        for(Process p: processes){
+            if(p.getPID() == PID){
+                p.setState(state);
+                return p;
+            }
+        }
+        return null;
     }
 
     public void checkArrivalTimeProcess(){
-        for(int i =0; i < processes.size(); i++){
-            if(processes.get(i).getArrivalTime() == time){
-                readyQueue.addLast(i);
+        for(Process p: processes){
+            if(p.getArrivalTime() == time){
+                findProcessAndSetState(p.getPID(), RUNNING);
+                readyQueue.addLast(p);
             }
         }
     }
 
     public void runQueue() throws IOException {
+
         while(runningQueue.size() != 0){
             if(false){
                 System.out.println("Running QUEUE");
-                printQID(runningQueue);
+//                printQID(runningQueue);
             }
 
-            Process p = processes.get(runningQueue.getFirst());
-            Thread thread = new Thread(p);
+            Process p = runningQueue.getFirst();
+//            System.out.println(p.getState());
+            if(p.getState() == RUNNING) {
+                Thread thread = new Thread(p);
             System.out.println("Clock: "+ time + ", Process "+p.getPID()+": Started");
-            thread.start();
+                thread.start();
+            }
 
 
-            time += vmm.nextCommand(p, time);
+//            time += vmm.nextCommand(p, time);
             System.out.println("Clock: "+ time + ", Process "+p.getPID()+": Running");
 
-//            System.out.println("Clock: "+ time + ", Process "+p.getPID()+": Processing");
             runningQueue.removeFirst();
-
         }
     }
 
     public void checkFinished(){
-        for(int i =0; i < processes.size(); i++){
-            if(processes.get(i).getArrivalTime()+processes.get(i).getBurstTime() == time){
-                finishedQueue.addLast(i);
-                System.out.println("Clock: "+ time + ", Process "+processes.get(i).getPID()+": Finished");
+        for(Process p: processes){
+            if(p.getArrivalTime()+p.getBurstTime() == time){
+                findProcessAndSetState(p.getPID(), FINISHED);
+                finishedQueue.addLast(p);
+                System.out.println("Clock: "+ time + ", Process "+p.getPID()+": "+p.getState());
             }
             if(finishedQueue.size() == processes.size()){
                 areProcessDone = true;
             }
         }
-
     }
-
 
     /**
      * Parse process input file into Process
@@ -146,6 +174,10 @@ public class Scheduler {
         }
         scanner.close();
 
+    }
+
+    static int randomTime(){
+        return rand.nextInt(100);
     }
 //
     //
@@ -179,7 +211,7 @@ public class Scheduler {
     }
 
     //simulate process
-    void runProcess(Process process){
+    /*void runProcess(Process process){
 
         int id;
         Process info = process;
@@ -214,7 +246,7 @@ public class Scheduler {
         }
 
 
-    }
+    }*/
 
     //thread scheduler
     void start_scheduler(){
